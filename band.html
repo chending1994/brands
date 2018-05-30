@@ -23,7 +23,7 @@
         <div class="row">
             <div class="col-lg-6">
                 <div class="input-group">
-                    <input type="text" class="form-control">
+                    <input type="text" class="form-control" v-model.trim="brandName">
                     <span class="input-group-btn">
                         <button class="btn btn-primary" type="button" @click="brandAdd()">添加</button>
                     </span>
@@ -32,7 +32,7 @@
             </div>
             <!-- /.col-lg-6 -->
             <div class="col-lg-4">
-                <input type="text" class="form-control" placeholder="Search for...">
+                <input type="text" class="form-control" placeholder="Search for..." v-model.trim="searchKey">
             </div>
             <!-- /.col-lg-6 -->
         </div>
@@ -60,32 +60,32 @@
     <script src="js/vue.js"></script>
     <script src="js/axios.js"></script>
     <script src="js/moment.js"></script>
+    <script src="js/fmtDate.js"></script>
     <script>
-        Vue.filter('fmtDate',(value,fmtStr) => {
-            return moment(value).format(fmtStr);
-        });
         new Vue({
-            el:"#app",
+            el: "#app",
             mounted() {
                 this.showList()
             },
             data: {
-                list:[]
+                list: [],
+                brandName: '',
+                searchKey: ''
             },
             methods: {
                 showList() {
                     axios.get("http://localhost:3000/brands")
-                    .then((res) => {
-                        if(res.status === 200) {
-                            this.list = res.data
-                        }
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    })
+                        .then((res) => {
+                            if (res.status === 200) {
+                                this.list = res.data
+                            }
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        })
                 },
                 brandDel(id) {
-                    if(!confirm('确定删除？')) {
+                    if (!confirm('确定删除？')) {
                         return false;
                     }
                     axios.delete(`http://localhost:3000/brands/${id}`)
@@ -95,6 +95,37 @@
                         .catch((error) => {
                             console.log(error);
                         })
+                },
+                brandAdd() {
+                    axios.post('http://localhost:3000/brands', {
+                        name: this.brandName,
+                        date: new Date()
+                    })
+                    .then((res) => {
+                        if(res.status === 201) {
+                            console.log(res);
+                        }
+                    })
+                    .catch((error)=> {
+                        console.log(error);
+                    })
+                }
+            },
+            watch: {
+                searchKey(newVal,oldVal) {
+                    axios.get('http://localhost:3000/brands',{
+                        params: {
+                            name_like: newVal
+                        }
+                    })
+                    .then((res) => {
+                        if(res.status === 200) {
+                            this.list = res.data;
+                        }
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
                 }
             }
         })
